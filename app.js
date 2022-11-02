@@ -18,6 +18,7 @@ const app = express();
 
 mongoose.connect(`mongodb://${DB_PATH}:${DB_PORT}/${DB_NAME}`);
 
+app.use(express.json());
 app.use('/', userRoutes);
 app.use('/', cardsRoutes);
 

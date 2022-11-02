@@ -1,14 +1,10 @@
 const router = require('express').Router();
 
-router.get('/users', (req, res) => {
-  res.send('Все пользователи бд');
-});
-router.post('/users', (req, res) => {
-  res.send(`Пользователь создан ${req}`);
-});
-router.get('/users/:userId', (req, res) => {
-  res.send(`Пользователь с id ${req.params.userId}`);
-});
+const controller = require('../controllers/UserController');
+
+router.get('/users', controller.getAllUsers);
+router.post('/users', controller.createUser);
+router.get('/users/:userId', controller.getUserById);
 router.patch('/users/me', (req, res) => {
   res.send('Информация обновлена');
 });
