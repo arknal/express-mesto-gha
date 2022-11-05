@@ -5,7 +5,8 @@
   "main": "app.js",
   "scripts": {
     "dev": "nodemon app.js",
-    "lint": "npx eslint ."
+    "lint": "npx eslint .",
+    "start": "app.js"
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,7 @@
   },
   "homepage": "https://github.com/arknal/express-mesto-gha#readme",
   "dependencies": {
+    "celebrate": "^15.0.1",
     "express": "^4.18.2",
     "mongoose": "^6.7.0"
   },
