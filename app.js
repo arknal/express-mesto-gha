@@ -8,17 +8,11 @@ const cardsRoutes = require('./routes/cards');
 
 const errorHandler = require('./middlewares/errorHandler');
 
-const
-  {
-    PORT = 3000,
-    DB_PATH = 'localhost',
-    DB_PORT = '27017',
-    DB_NAME = 'mestodb',
-  } = process.env;
+const { PORT = 3000 } = process.env;
 
 const app = express();
 
-mongoose.connect(`mongodb://${DB_PATH}:${DB_PORT}/${DB_NAME}`);
+mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use(express.json());
 app.use((req, res, next) => {
