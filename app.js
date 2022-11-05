@@ -6,6 +6,8 @@ const userRoutes = require('./routes/users');
 
 const cardsRoutes = require('./routes/cards');
 
+const errorHandler = require('./middlewares/errorHandler');
+
 const
   {
     PORT = 3000,
@@ -19,9 +21,17 @@ const app = express();
 mongoose.connect(`mongodb://${DB_PATH}:${DB_PORT}/${DB_NAME}`);
 
 app.use(express.json());
+app.use((req, res, next) => {
+  req.user = {
+    _id: '63665597293dbe4788db8aeb',
+  };
+
+  next();
+});
+
 app.use('/', userRoutes);
 app.use('/', cardsRoutes);
 
-app.listen(PORT, () => {
-  console.log('server started at port', PORT);
-});
+app.use(errorHandler);
+
+app.listen(PORT, () => console.log('server started at port', PORT));

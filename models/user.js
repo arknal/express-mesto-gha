@@ -16,7 +16,8 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     required: true,
+    default: 'https://i.pinimg.com/originals/b6/4d/83/b64d83db4a557b546462ca15150ff125.gif',
   },
-});
+}, { versionKey: false });
 
 module.exports = mongoose.model('user', userSchema);
