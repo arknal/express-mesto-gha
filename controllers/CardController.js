@@ -33,25 +33,47 @@ class CardController {
   }
 
   static addLike(req, res, next) {
-    Card.findByIdAndUpdate(
-      req.params.cardId,
-      { $addToSet: { likes: req.user._id } },
-      { new: true },
-    )
-      .populate('likes')
-      .then((card) => res.status(200).send({ card }))
-      .catch((e) => next(e));
+    const { cardId } = req.params;
+    if (cardId) {
+      Card.findByIdAndUpdate(
+        req.params.cardId,
+        { $addToSet: { likes: req.user._id } },
+        { new: true },
+      )
+        .populate('likes')
+        .then((card) => res.status(200).send({ card }))
+        .catch((e) => {
+          if (e.name === 'CastError') {
+            next(ApiError.notFound('Карточка не найдена'));
+          } else {
+            next(e);
+          }
+        });
+    } else {
+      next(ApiError.badRequest('Некорректные данные'));
+    }
   }
 
   static removeLike(req, res, next) {
-    Card.findByIdAndUpdate(
-      req.params.cardId,
-      { $pull: { likes: req.user._id } },
-      { new: true },
-    )
-      .populate('likes')
-      .then((card) => res.status(200).send({ card }))
-      .catch(() => next(ApiError.internal('Произошла ошибка')));
+    const { cardId } = req.params;
+    if (cardId) {
+      Card.findByIdAndUpdate(
+        req.params.cardId,
+        { $pull: { likes: req.user._id } },
+        { new: true },
+      )
+        .populate('likes')
+        .then((card) => res.status(200).send({ card }))
+        .catch((e) => {
+          if (e.name === 'CastError') {
+            next(ApiError.notFound('Карточка не найдена'));
+          } else {
+            next(e);
+          }
+        });
+    } else {
+      next(ApiError.badRequest('Некорректные данные'));
+    }
   }
 }
 module.exports = CardController;
