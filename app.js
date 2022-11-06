@@ -10,6 +10,8 @@ const errorHandler = require('./middlewares/errorHandler');
 
 const app = express();
 
+const { PORT = 3000 } = process.env;
+
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use(express.json());
@@ -26,4 +28,4 @@ app.use('/', cardsRoutes);
 
 app.use(errorHandler);
 
-app.listen(3000);
+app.listen(PORT);
