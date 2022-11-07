@@ -1,16 +1,24 @@
 const User = require('../models/user');
-const ApiError = require('../error/apiError');
+const ApiError = require('../error/ApiError');
 
 class UserController {
   static createUser(req, res, next) {
     const { name, about, avatar } = req.body;
-    if (name && about && avatar) {
-      User.create(req.body)
-        .then((user) => res.send({ user }))
-        .catch((e) => next(e));
-    } else {
-      next(ApiError.badRequest('Некорректные данные'));
+
+    if (name.length > 30 || name.length < 2) {
+      throw ApiError.badRequest('Ошибка. Длина name должна быть от 2 до 30 символов');
     }
+    if (about.length > 30 || about.length < 2) {
+      throw ApiError.badRequest('Ошибка. Длина about должна быть от 2 до 30 символов');
+    }
+
+    User.create({
+      name,
+      about,
+      avatar,
+    })
+      .then((user) => res.send({ user }))
+      .catch((e) => next(e));
   }
 
   static getAllUsers(req, res, next) {
@@ -20,50 +28,37 @@ class UserController {
   }
 
   static getUserById(req, res, next) {
-    User.find({ _id: req.params.userId })
+    User.findOne({ _id: req.params.userId })
       .then((user) => res.send({ user }))
-      .catch((e) => {
-        if (e.name === 'CastError') {
-          next(ApiError.notFound('Пользователь не найден'));
-        } else {
-          next(e);
-        }
-      });
+      .catch((e) => UserController.handleError(e, next));
   }
 
   static updateUserProfile(req, res, next) {
     const id = req.user._id;
     const { name, about } = req.body;
-    if (name && about) {
-      User.findByIdAndUpdate({ _id: id }, { name, about }, { new: true })
-        .then((profile) => res.send({ profile }))
-        .catch((e) => {
-          if (e.name === 'CastError') {
-            next(ApiError.notFound('Пользователь не найден'));
-          } else {
-            next(e);
-          }
-        });
-    } else {
-      next(ApiError.badRequest('Некорректные данные'));
-    }
+
+    User.findByIdAndUpdate({ _id: id }, { name, about }, { new: true })
+      .then((profile) => res.send({ profile }))
+      .catch((e) => UserController.handleError(e, next));
   }
 
   static updateUserAvatar(req, res, next) {
     const id = req.user._id;
     const { avatar } = req.body;
-    if (avatar) {
-      User.findByIdAndUpdate({ _id: id }, { avatar }, { new: true })
-        .then((profile) => res.send({ profile }))
-        .catch((e) => {
-          if (e.name === 'CastError') {
-            next(ApiError.notFound('Пользователь не найден'));
-          } else {
-            next(e);
-          }
-        });
-    } else {
-      next(ApiError.badRequest('Некорректные данные'));
+
+    User.findByIdAndUpdate({ _id: id }, { avatar }, { new: true })
+      .then((profile) => res.send({ profile }))
+      .catch((e) => UserController.handleError(e, next));
+  }
+
+  static handleError(error, next) {
+    switch (error.name) {
+      case 'CastError':
+        next(ApiError.notFound('Ошибка. Пользователь не найден'));
+        break;
+      default:
+        next(error);
+        break;
     }
   }
 }

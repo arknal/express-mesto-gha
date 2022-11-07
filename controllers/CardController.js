@@ -1,78 +1,67 @@
 const Card = require('../models/card');
-const ApiError = require('../error/apiError');
+const ApiError = require('../error/ApiError');
 
 class CardController {
   static createCard(req, res, next) {
     const { name, link } = req.body;
     const id = req.user._id;
 
-    if (name && link && id) {
-      Card.create({
-        name,
-        link,
-        owner: id,
-      })
-        .then((card) => res.send({ card }))
-        .catch((e) => next(e));
-    } else {
-      next(ApiError.badRequest('Некорректные данные'));
+    if (name.length > 30 || name.length < 2) {
+      throw ApiError.badRequest('Ошибка. Длина name должна быть от 2 до 30 символов');
     }
+
+    Card.create({
+      name,
+      link,
+      owner: id,
+    })
+      .then((card) => res.status(201).send({ card }))
+      .catch((e) => next(e));
   }
 
   static getAllCards(req, res, next) {
     Card.find({})
       .populate('likes')
-      .then((cards) => res.send({ cards }))
+      .then((cards) => res.status(200).send({ cards }))
       .catch((e) => next(e));
   }
 
   static deleteCard(req, res, next) {
     Card.findByIdAndRemove(req.params.cardId)
-      .then(() => res.sendStatus(200))
-      .catch((e) => next(e));
+      .then(() => res.status(200).send({ message: 'Карточка успешно удалена' }))
+      .catch((e) => CardController.handleError(e, next));
   }
 
   static addLike(req, res, next) {
-    const { cardId } = req.params;
-    if (cardId) {
-      Card.findByIdAndUpdate(
-        req.params.cardId,
-        { $addToSet: { likes: req.user._id } },
-        { new: true },
-      )
-        .populate('likes')
-        .then((card) => res.status(200).send({ card }))
-        .catch((e) => {
-          if (e.name === 'CastError') {
-            next(ApiError.notFound('Карточка не найдена'));
-          } else {
-            next(e);
-          }
-        });
-    } else {
-      next(ApiError.badRequest('Некорректные данные'));
-    }
+    Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $addToSet: { likes: req.user._id } },
+      { new: true },
+    )
+      .populate('likes')
+      .then((card) => res.status(200).send({ card }))
+      .catch((e) => CardController.handleError(e, next));
   }
 
   static removeLike(req, res, next) {
-    const { cardId } = req.params;
-    if (cardId) {
-      Card.findByIdAndUpdate(
-        req.params.cardId,
-        { $pull: { likes: req.user._id } },
-        { new: true },
-      )
-        .populate('likes')
-        .then((card) => res.status(200).send({ card }))
-        .catch((e) => {
-          if (e.name === 'CastError') {
-            next(ApiError.notFound('Карточка не найдена'));
-          } else {
-            next(e);
-          }
-        });
-    } else {
-      next(ApiError.badRequest('Некорректные данные'));
+    Card.findByIdAndUpdate(
+      req.params.cardId,
+      { $pull: { likes: req.user._id } },
+      { new: true },
+    )
+      .populate('likes')
+      .then((card) => res.status(200).send({ card }))
+      .catch((e) => CardController.handleError(e, next));
+  }
+
+  static handleError(error, next) {
+    switch (error.name) {
+      case 'CastError':
+        next(ApiError.notFound('Ошибка. Карточка не найдена'));
+        break;
+      default:
+        next(error);
+        break;
     }
   }
 }
