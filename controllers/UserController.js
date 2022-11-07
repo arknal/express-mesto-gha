@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const ApiError = require('../error/ApiError');
+const ApiError = require('../error/apiError');
 
 class UserController {
   static createUser(req, res, next) {

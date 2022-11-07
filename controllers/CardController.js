@@ -1,5 +1,5 @@
 const Card = require('../models/card');
-const ApiError = require('../error/ApiError');
+const ApiError = require('../error/apiError');
 
 class CardController {
   static createCard(req, res, next) {

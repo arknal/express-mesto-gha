@@ -1,6 +1,6 @@
 const router = require('express').Router();
 const cardController = require('../controllers/CardController');
-const apiError = require('../error/ApiError');
+const apiError = require('../error/apiError');
 
 router.get('/cards', cardController.getAllCards);
 

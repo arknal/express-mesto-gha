@@ -1,4 +1,4 @@
-const apiError = require('../error/ApiError');
+const apiError = require('../error/apiError');
 
 module.exports.checkType = (item, type) => {
   // item: { 'name': someName, 'value': someValue }, type: string
