@@ -29,7 +29,13 @@ class UserController {
 
   static getUserById(req, res, next) {
     User.findOne({ _id: req.params.userId })
-      .then((user) => res.send({ user }))
+      .then((user) => {
+        if (user) {
+          res.send({ user });
+        } else {
+          throw ApiError.notFound('Ошибка. Пользователь с таким id не найден');
+        }
+      })
       .catch((e) => UserController.handleError(e, next));
   }
 
@@ -38,7 +44,13 @@ class UserController {
     const { name, about } = req.body;
 
     User.findByIdAndUpdate({ _id: id }, { name, about }, { new: true })
-      .then((profile) => res.send({ profile }))
+      .then((profile) => {
+        if (profile) {
+          res.send({ profile });
+        } else {
+          throw ApiError.notFound('Ошибка. Пользователь с таким id не найден');
+        }
+      })
       .catch((e) => UserController.handleError(e, next));
   }
 
@@ -54,7 +66,7 @@ class UserController {
   static handleError(error, next) {
     switch (error.name) {
       case 'CastError':
-        next(ApiError.notFound('Ошибка. Пользователь не найден'));
+        next(ApiError.badRequest('Ошибка. Некорректный id пользователя'));
         break;
       default:
         next(error);

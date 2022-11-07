@@ -28,7 +28,14 @@ class CardController {
 
   static deleteCard(req, res, next) {
     Card.findByIdAndRemove(req.params.cardId)
-      .then(() => res.status(200).send({ message: 'Карточка успешно удалена' }))
+      .then((card) => {
+        if (!card) {
+          throw ApiError.notFound('Ошибка. Карточка с таким id не найдена');
+        }
+      })
+      .then(() => {
+        res.status(200).send({ message: 'Карточка успешно удалена' });
+      })
       .catch((e) => CardController.handleError(e, next));
   }
 
@@ -38,6 +45,11 @@ class CardController {
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
+      .then((card) => {
+        if (!card) {
+          throw ApiError.notFound('Ошибка. Карточка с таким id не найдена');
+        }
+      })
       .populate('likes')
       .then((card) => res.status(200).send({ card }))
       .catch((e) => CardController.handleError(e, next));
@@ -49,15 +61,20 @@ class CardController {
       { $pull: { likes: req.user._id } },
       { new: true },
     )
+      .then((card) => {
+        if (!card) {
+          throw ApiError.notFound('Ошибка. Карточка с таким id не найдена');
+        }
+      })
       .populate('likes')
-      .then((card) => res.status(200).send({ card }))
+      .then((card) => res.send({ card }))
       .catch((e) => CardController.handleError(e, next));
   }
 
   static handleError(error, next) {
     switch (error.name) {
       case 'CastError':
-        next(ApiError.notFound('Ошибка. Карточка не найдена'));
+        next(ApiError.badRequest('Ошибка. Некорректный id карточки'));
         break;
       default:
         next(error);

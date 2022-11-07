@@ -25,7 +25,12 @@ app.use((req, res, next) => {
 
 app.use('/', userRoutes);
 app.use('/', cardsRoutes);
-
 app.use(errorHandler);
+
+app.use((req, res) => {
+  res.status(404).send({
+    message: '404 Bad request',
+  });
+});
 
 app.listen(PORT);
