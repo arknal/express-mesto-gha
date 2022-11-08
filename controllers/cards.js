@@ -29,7 +29,7 @@ function createCard(req, res, next) {
     owner: id,
   })
     .then((card) => res.status(201).send({ card }))
-    .catch((e) => next(e));
+    .catch((e) => handleError(e, next));
 }
 
 function getAllCards(req, res, next) {

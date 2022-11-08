@@ -50,7 +50,7 @@ function updateUserProfile(req, res, next) {
   const id = req.user._id;
   const { name, about } = req.body;
 
-  User.findByIdAndUpdate({ _id: id }, { name, about }, { new: true })
+  User.findByIdAndUpdate({ _id: id }, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       checkUser(user);
       res.send({ user });
@@ -62,7 +62,7 @@ function updateUserAvatar(req, res, next) {
   const id = req.user._id;
   const { avatar } = req.body;
 
-  User.findByIdAndUpdate({ _id: id }, { avatar }, { new: true })
+  User.findByIdAndUpdate({ _id: id }, { avatar }, { new: true, runValidators: true })
     .then((user) => res.send({ user }))
     .catch((e) => handleError(e, next));
 }

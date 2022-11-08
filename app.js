@@ -29,7 +29,7 @@ app.use(errorHandler);
 
 app.use((req, res) => {
   res.status(404).send({
-    message: '404 Bad request',
+    message: '404 Not Found',
   });
 });
 
