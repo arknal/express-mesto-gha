@@ -1,29 +1,20 @@
 const router = require('express').Router();
-const cardController = require('../controllers/CardController');
-const apiError = require('../error/apiError');
+const {
+  createCard,
+  getAllCards,
+  deleteCard,
+  addLike,
+  removeLike,
+} = require('../controllers/cards');
 
-router.get('/cards', cardController.getAllCards);
+router.get('/cards', getAllCards);
 
-router.post('/cards', (req, res, next) => {
-  const { name, link } = req.body;
-  const nameType = typeof name;
-  const linkType = typeof link;
+router.post('/cards', createCard);
 
-  if (!(nameType === 'string')) {
-    throw apiError.badRequest(`Ошибка. Тип данных name ${nameType}, ожидалось string`);
-  }
-  if (!(linkType === 'string')) {
-    throw apiError.badRequest(`Ошибка. Тип данных link ${linkType}, ожидалось string`);
-  }
-  next();
-});
+router.delete('/cards/:cardId', deleteCard);
 
-router.post('/cards', cardController.createCard);
+router.put('/cards/:cardId/likes', addLike);
 
-router.delete('/cards/:cardId', cardController.deleteCard);
-
-router.put('/cards/:cardId/likes', cardController.addLike);
-
-router.delete('/cards/:cardId/likes', cardController.removeLike);
+router.delete('/cards/:cardId/likes', removeLike);
 
 module.exports = router;
