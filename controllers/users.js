@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const ApiError = require('../error/apiError');
 const {
-  successStatusCode,
+  okStatusCode,
   badRequestStatusCode,
   notFoundStatusCode,
 } = require('../utils/consts');
@@ -14,7 +14,7 @@ function createUser(req, res, next) {
     about,
     avatar,
   })
-    .then((user) => res.status(successStatusCode).send({ user }))
+    .then((user) => res.status(okStatusCode).send({ user }))
     .catch((e) => {
       switch (e.name) {
         case 'ValidationError':
@@ -37,7 +37,7 @@ function getUserById(req, res, next) {
   User.findOne({ _id: req.params.userId })
     .orFail()
     .then((user) => {
-      res.status(successStatusCode).send({ user });
+      res.status(okStatusCode).send({ user });
     })
     .catch((e) => {
       switch (e.name) {
@@ -61,7 +61,7 @@ function updateUserProfile(req, res, next) {
   User.findByIdAndUpdate({ _id: id }, { name, about }, { new: true, runValidators: true })
     .orFail()
     .then((user) => {
-      res.status(successStatusCode).send({ user });
+      res.status(okStatusCode).send({ user });
     })
     .catch((e) => {
       switch (e.name) {
@@ -87,7 +87,7 @@ function updateUserAvatar(req, res, next) {
 
   User.findByIdAndUpdate({ _id: id }, { avatar }, { new: true, runValidators: true })
     .orFail()
-    .then((user) => res.status(successStatusCode).send({ user }))
+    .then((user) => res.status(okStatusCode).send({ user }))
     .catch((e) => {
       switch (e.name) {
         case 'CastError':

@@ -1,7 +1,7 @@
 const Card = require('../models/card');
 const ApiError = require('../error/apiError');
 const {
-  successStatusCode,
+  okStatusCode,
   badRequestStatusCode,
   notFoundStatusCode,
 } = require('../utils/consts');
@@ -15,7 +15,7 @@ function createCard(req, res, next) {
     link,
     owner: id,
   })
-    .then((card) => res.status(successStatusCode).send({ card }))
+    .then((card) => res.status(okStatusCode).send({ card }))
     .catch((e) => {
       switch (e.name) {
         case 'ValidationError':
@@ -31,7 +31,7 @@ function createCard(req, res, next) {
 function getAllCards(req, res, next) {
   Card.find({})
     .populate('likes')
-    .then((cards) => res.status(successStatusCode).send({ cards }))
+    .then((cards) => res.status(okStatusCode).send({ cards }))
     .catch((e) => next(e));
 }
 
@@ -39,7 +39,7 @@ function deleteCard(req, res, next) {
   Card.findByIdAndRemove(req.params.cardId)
     .orFail()
     .then(() => {
-      res.status(successStatusCode).send({ message: 'Карточка успешно удалена' });
+      res.status(okStatusCode).send({ message: 'Карточка успешно удалена' });
     })
     .catch((e) => {
       switch (e.name) {
@@ -64,7 +64,7 @@ function addLike(req, res, next) {
   )
     .orFail()
     .populate('likes')
-    .then((card) => res.status(successStatusCode).send({ card }))
+    .then((card) => res.status(okStatusCode).send({ card }))
     .catch((e) => {
       switch (e.name) {
         case 'CastError':
@@ -88,7 +88,7 @@ function removeLike(req, res, next) {
   )
     .orFail()
     .populate('likes')
-    .then((card) => res.status(successStatusCode).send({ card }))
+    .then((card) => res.status(okStatusCode).send({ card }))
     .catch((e) => {
       switch (e.name) {
         case 'CastError':
