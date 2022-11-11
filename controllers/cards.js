@@ -1,24 +1,11 @@
 const Card = require('../models/card');
 const ApiError = require('../error/apiError');
+const {
+  successStatusCode,
+  badRequestStatusCode,
+  notFoundStatusCode,
+} = require('../utils/consts');
 
-function handleError(error, next) {
-  switch (error.name) {
-    case 'CastError':
-      next(new ApiError(400, 'Ошибка. Некорректный id карточки'));
-      break;
-    case 'ValidationError':
-      next(new ApiError(400, 'Ошибка. Некорректные данные'));
-      break;
-    default:
-      next(error);
-      break;
-  }
-}
-function checkCard(card) {
-  if (!card) {
-    throw new ApiError(404, 'Ошибка. Карточка с таким id не найдена');
-  }
-}
 function createCard(req, res, next) {
   const { name, link } = req.body;
   const id = req.user._id;
@@ -28,26 +15,45 @@ function createCard(req, res, next) {
     link,
     owner: id,
   })
-    .then((card) => res.status(201).send({ card }))
-    .catch((e) => handleError(e, next));
+    .then((card) => res.status(successStatusCode).send({ card }))
+    .catch((e) => {
+      switch (e.name) {
+        case 'ValidationError':
+          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректные данные'));
+          break;
+        default:
+          next(e);
+          break;
+      }
+    });
 }
 
 function getAllCards(req, res, next) {
   Card.find({})
     .populate('likes')
-    .then((cards) => res.status(200).send({ cards }))
+    .then((cards) => res.status(successStatusCode).send({ cards }))
     .catch((e) => next(e));
 }
 
 function deleteCard(req, res, next) {
   Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => {
-      checkCard(card);
-    })
+    .orFail()
     .then(() => {
-      res.status(200).send({ message: 'Карточка успешно удалена' });
+      res.status(successStatusCode).send({ message: 'Карточка успешно удалена' });
     })
-    .catch((e) => handleError(e, next));
+    .catch((e) => {
+      switch (e.name) {
+        case 'CastError':
+          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id карточки'));
+          break;
+        case 'DocumentNotFoundError':
+          next(new ApiError(notFoundStatusCode, 'Ошибка. Карточка не найдена'));
+          break;
+        default:
+          next(e);
+          break;
+      }
+    });
 }
 
 function addLike(req, res, next) {
@@ -56,13 +62,22 @@ function addLike(req, res, next) {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
+    .orFail()
     .populate('likes')
-    .then((card) => {
-      checkCard(card);
-      return card;
-    })
-    .then((card) => res.status(200).send({ card }))
-    .catch((e) => handleError(e, next));
+    .then((card) => res.status(successStatusCode).send({ card }))
+    .catch((e) => {
+      switch (e.name) {
+        case 'CastError':
+          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id карточки'));
+          break;
+        case 'DocumentNotFoundError':
+          next(new ApiError(notFoundStatusCode, 'Ошибка. Карточка не найдена'));
+          break;
+        default:
+          next(e);
+          break;
+      }
+    });
 }
 
 function removeLike(req, res, next) {
@@ -71,13 +86,22 @@ function removeLike(req, res, next) {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
+    .orFail()
     .populate('likes')
-    .then((card) => {
-      checkCard(card);
-      return card;
-    })
-    .then((card) => res.send({ card }))
-    .catch((e) => handleError(e, next));
+    .then((card) => res.status(successStatusCode).send({ card }))
+    .catch((e) => {
+      switch (e.name) {
+        case 'CastError':
+          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id карточки'));
+          break;
+        case 'DocumentNotFoundError':
+          next(new ApiError(notFoundStatusCode, 'Ошибка. Карточка не найдена'));
+          break;
+        default:
+          next(e);
+          break;
+      }
+    });
 }
 module.exports = {
   createCard,

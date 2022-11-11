@@ -1,24 +1,11 @@
 const User = require('../models/user');
 const ApiError = require('../error/apiError');
+const {
+  successStatusCode,
+  badRequestStatusCode,
+  notFoundStatusCode,
+} = require('../utils/consts');
 
-function handleError(error, next) {
-  switch (error.name) {
-    case 'CastError':
-      next(new ApiError(400, 'Ошибка. Некорректный id пользователя'));
-      break;
-    case 'ValidationError':
-      next(new ApiError(400, 'Ошибка. Некорректные данные'));
-      break;
-    default:
-      next(error);
-      break;
-  }
-}
-function checkUser(user) {
-  if (!user) {
-    throw new ApiError(404, 'Ошибка. Пользователь с таким id не найден');
-  }
-}
 function createUser(req, res, next) {
   const { name, about, avatar } = req.body;
 
@@ -27,8 +14,17 @@ function createUser(req, res, next) {
     about,
     avatar,
   })
-    .then((user) => res.send({ user }))
-    .catch((e) => handleError(e, next));
+    .then((user) => res.status(successStatusCode).send({ user }))
+    .catch((e) => {
+      switch (e.name) {
+        case 'ValidationError':
+          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректные данные'));
+          break;
+        default:
+          next(e);
+          break;
+      }
+    });
 }
 
 function getAllUsers(req, res, next) {
@@ -39,11 +35,23 @@ function getAllUsers(req, res, next) {
 
 function getUserById(req, res, next) {
   User.findOne({ _id: req.params.userId })
+    .orFail()
     .then((user) => {
-      checkUser(user);
-      res.send({ user });
+      res.status(successStatusCode).send({ user });
     })
-    .catch((e) => handleError(e, next));
+    .catch((e) => {
+      switch (e.name) {
+        case 'CastError':
+          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id пользователя'));
+          break;
+        case 'DocumentNotFoundError':
+          next(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'));
+          break;
+        default:
+          next(e);
+          break;
+      }
+    });
 }
 
 function updateUserProfile(req, res, next) {
@@ -51,11 +59,26 @@ function updateUserProfile(req, res, next) {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate({ _id: id }, { name, about }, { new: true, runValidators: true })
+    .orFail()
     .then((user) => {
-      checkUser(user);
-      res.send({ user });
+      res.status(successStatusCode).send({ user });
     })
-    .catch((e) => handleError(e, next));
+    .catch((e) => {
+      switch (e.name) {
+        case 'CastError':
+          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id пользователя'));
+          break;
+        case 'DocumentNotFoundError':
+          next(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'));
+          break;
+        case 'ValidationError':
+          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректные данные'));
+          break;
+        default:
+          next(e);
+          break;
+      }
+    });
 }
 
 function updateUserAvatar(req, res, next) {
@@ -63,8 +86,24 @@ function updateUserAvatar(req, res, next) {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate({ _id: id }, { avatar }, { new: true, runValidators: true })
-    .then((user) => res.send({ user }))
-    .catch((e) => handleError(e, next));
+    .orFail()
+    .then((user) => res.status(successStatusCode).send({ user }))
+    .catch((e) => {
+      switch (e.name) {
+        case 'CastError':
+          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id пользователя'));
+          break;
+        case 'DocumentNotFoundError':
+          next(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'));
+          break;
+        case 'ValidationError':
+          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректные данные'));
+          break;
+        default:
+          next(e);
+          break;
+      }
+    });
 }
 
 module.exports = {
