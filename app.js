@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 
 const mongoose = require('mongoose');
@@ -33,4 +35,4 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT);
+app.listen(PORT, () => console.log('server started at port', PORT));
