@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const ApiError = require('../error/apiError');
 const {
@@ -6,14 +7,24 @@ const {
   notFoundStatusCode,
 } = require('../utils/consts');
 
-function createUser(req, res, next) {
-  const { name, about, avatar } = req.body;
+const { SALT_LENGTH = 10 } = process.env;
 
-  User.create({
+function createUser(req, res, next) {
+  const {
     name,
     about,
     avatar,
-  })
+    email,
+    password,
+  } = req.body;
+  bcrypt.hash(password, +SALT_LENGTH)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
     .then((user) => res.status(okStatusCode).send({ user }))
     .catch((e) => {
       switch (e.name) {
