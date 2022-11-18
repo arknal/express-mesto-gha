@@ -4,6 +4,8 @@ const { celebrate, Joi } = require('celebrate');
 
 const authMiddleware = require('../middlewares/auth');
 
+const { urlRegExp } = require('../utils/consts');
+
 const {
   getAllUsers,
   getUserById,
@@ -19,7 +21,7 @@ router.get('/users', getAllUsers);
 router.get('/users/me', getCurrentUser);
 
 router.get('/users/:userId', celebrate({
-  query: Joi.object().keys({
+  params: Joi.object().keys({
     userId: Joi.string().alphanum().length(24),
   }),
 }), getUserById);
@@ -33,7 +35,7 @@ router.patch('/users/me', celebrate({
 
 router.patch('/users/me/avatar', celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required().uri(),
+    avatar: Joi.string().required().pattern(urlRegExp),
   }),
 }), updateUserAvatar);
 

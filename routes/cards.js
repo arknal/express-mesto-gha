@@ -4,6 +4,8 @@ const { celebrate, Joi } = require('celebrate');
 
 const authMiddleware = require('../middlewares/auth');
 
+const { urlRegExp } = require('../utils/consts');
+
 const {
   createCard,
   getAllCards,
@@ -19,24 +21,24 @@ router.get('/cards', getAllCards);
 router.post('/cards', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().uri(),
+    link: Joi.string().required().pattern(urlRegExp),
   }),
 }), createCard);
 
 router.delete('/cards/:cardId', celebrate({
-  query: Joi.object().keys({
+  params: Joi.object().keys({
     cardId: Joi.string().alphanum().length(24),
   }),
 }), deleteCard);
 
 router.put('/cards/:cardId/likes', celebrate({
-  query: Joi.object().keys({
+  params: Joi.object().keys({
     userId: Joi.string().alphanum().length(24),
   }),
 }), addLike);
 
 router.delete('/cards/:cardId/likes', celebrate({
-  query: Joi.object().keys({
+  params: Joi.object().keys({
     userId: Joi.string().alphanum().length(24),
   }),
 }), removeLike);

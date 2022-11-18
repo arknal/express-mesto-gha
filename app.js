@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 
 const { celebrate, Joi, errors } = require('celebrate');
 
+const { urlRegExp } = require('./utils/consts');
+
 const { login, createUser } = require('./controllers/users');
 
 const userRoutes = require('./routes/users');
@@ -34,7 +36,7 @@ app.post('/signup', celebrate({
     about: Joi.string().min(2).max(30),
     email: Joi.string().required().email(),
     password: Joi.string().required().min(4),
-    avatar: Joi.string().uri(),
+    avatar: Joi.string().pattern(urlRegExp),
   }).unknown(true),
 }), createUser);
 app.use('/', userRoutes);
