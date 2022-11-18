@@ -1,7 +1,7 @@
 const { conflictStatusCode } = require('../utils/consts');
 
 class ConflictError extends Error {
-  constructor(status, message) {
+  constructor(message) {
     super(message);
     this.status = conflictStatusCode;
   }

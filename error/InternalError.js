@@ -1,7 +1,7 @@
 const { internalStatusCode } = require('../utils/consts');
 
 class InternalError extends Error {
-  constructor(status, message) {
+  constructor(message) {
     super(message);
     this.status = internalStatusCode;
   }
