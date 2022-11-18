@@ -6,7 +6,7 @@ const mongoose = require('mongoose');
 
 const { celebrate, Joi, errors } = require('celebrate');
 
-const { urlRegExp } = require('./utils/consts');
+const { urlRegExp, notFoundStatusCode } = require('./utils/consts');
 
 const { login, createUser } = require('./controllers/users');
 
@@ -45,7 +45,7 @@ app.use(errors());
 app.use(errorHandler);
 
 app.use((req, res) => {
-  res.status(404).send({
+  res.status(notFoundStatusCode).send({
     message: '404 Not Found',
   });
 });

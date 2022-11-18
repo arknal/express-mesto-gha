@@ -2,15 +2,12 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
-const ApiError = require('../error/apiError');
-const {
-  okStatusCode,
-  badRequestStatusCode,
-  notFoundStatusCode,
-  conflictStatusCode,
-} = require('../utils/consts');
 
-const { JWT_SECRET = 'e5941b231be3be054dcec54b7cf2f9f7' } = process.env;
+const ConflictError = require('../error/ConflictError');
+const NotFoundError = require('../error/NotFoundError');
+const { okStatusCode } = require('../utils/consts');
+
+const { JWT_SECRET = 'e5941b231be3be054dcec54b7cf2f9f7', SALT = 10 } = process.env;
 
 function login(req, res, next) {
   const { email, password } = req.body;
@@ -30,7 +27,7 @@ function createUser(req, res, next) {
     email,
     password,
   } = req.body;
-  bcrypt.hash(password, 10)
+  bcrypt.hash(password, +SALT)
     .then((hash) => User.create({
       name,
       about,
@@ -43,42 +40,26 @@ function createUser(req, res, next) {
       res.status(okStatusCode).send({ info });
     })
     .catch((e) => {
-      switch (e.name) {
-        case 'ValidationError':
-          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректные данные'));
-          break;
-        case e.code === 11000 && 'MongoServerError':
-          next(new ApiError(conflictStatusCode, 'Пользователь с таким email уже зарегистрирован'));
-          break;
-        default:
-          next(e);
-          break;
+      if (e.code === 11000 && 'MongoServerError') {
+        next(new ConflictError('Пользователь с таким email уже зарегистрирован'));
       }
+      next(e);
     });
 }
 
 function getAllUsers(req, res, next) {
   User.find({})
     .then((users) => res.send({ users }))
-    .catch((e) => next(e));
+    .catch(next);
 }
 
 function getUserById(req, res, next) {
   User.findById(req.params.userId)
-    .orFail(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'))
+    .orFail(new NotFoundError('Ошибка. Пользователь не найден'))
     .then((user) => {
       res.status(okStatusCode).send({ user });
     })
-    .catch((e) => {
-      switch (e.name) {
-        case 'CastError':
-          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id пользователя'));
-          break;
-        default:
-          next(e);
-          break;
-      }
-    });
+    .catch(next);
 }
 function getCurrentUser(req, res, next) {
   User.findById(req.user._id)
@@ -92,23 +73,11 @@ function updateUserProfile(req, res, next) {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate({ _id: id }, { name, about }, { new: true, runValidators: true })
-    .orFail(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'))
+    .orFail(new NotFoundError('Ошибка. Пользователь не найден'))
     .then((user) => {
       res.status(okStatusCode).send({ user });
     })
-    .catch((e) => {
-      switch (e.name) {
-        case 'CastError':
-          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id пользователя'));
-          break;
-        case 'ValidationError':
-          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректные данные'));
-          break;
-        default:
-          next(e);
-          break;
-      }
-    });
+    .catch(next);
 }
 
 function updateUserAvatar(req, res, next) {
@@ -116,21 +85,9 @@ function updateUserAvatar(req, res, next) {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate({ _id: id }, { avatar }, { new: true, runValidators: true })
-    .orFail(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'))
+    .orFail(new NotFoundError('Ошибка. Пользователь не найден'))
     .then((user) => res.status(okStatusCode).send({ user }))
-    .catch((e) => {
-      switch (e.name) {
-        case 'CastError':
-          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id пользователя'));
-          break;
-        case 'ValidationError':
-          next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректные данные'));
-          break;
-        default:
-          next(e);
-          break;
-      }
-    });
+    .catch(next);
 }
 
 module.exports = {
