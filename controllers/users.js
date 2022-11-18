@@ -10,7 +10,7 @@ const {
   conflictStatusCode,
 } = require('../utils/consts');
 
-const { SALT_LENGTH = 10, JWT_SECRET } = process.env;
+const { SALT_LENGTH = 10, JWT_SECRET = 'e5941b231be3be054dcec54b7cf2f9f7' } = process.env;
 
 function login(req, res, next) {
   const { email, password } = req.body;

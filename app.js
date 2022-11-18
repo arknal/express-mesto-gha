@@ -4,6 +4,8 @@ const express = require('express');
 
 const mongoose = require('mongoose');
 
+const { celebrate, Joi, errors } = require('celebrate');
+
 const { login, createUser } = require('./controllers/users');
 
 const userRoutes = require('./routes/users');
@@ -20,10 +22,21 @@ mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use(express.json());
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(4),
+  }),
+}), login);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    about: Joi.string().required().min(4),
+  }).unknown(true),
+}), createUser);
 app.use('/', userRoutes);
 app.use('/', cardsRoutes);
+app.use(errors());
 app.use(errorHandler);
 
 app.use((req, res) => {
@@ -32,4 +45,4 @@ app.use((req, res) => {
   });
 });
 
-app.listen(PORT, () => console.log('server started at port', PORT));
+app.listen(PORT);
