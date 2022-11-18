@@ -4,6 +4,7 @@ const {
   okStatusCode,
   badRequestStatusCode,
   notFoundStatusCode,
+  forbiddenStatusCode,
 } = require('../utils/consts');
 
 function createCard(req, res, next) {
@@ -36,8 +37,14 @@ function getAllCards(req, res, next) {
 }
 
 function deleteCard(req, res, next) {
-  Card.findByIdAndRemove(req.params.cardId)
-    .orFail()
+  Card.findById(req.params.cardId)
+    .orFail(new ApiError(notFoundStatusCode, 'Ошибка. Карточка не найдена'))
+    .then((card) => {
+      if (!(card._doc.owner.toString() === req.user._id)) {
+        throw new ApiError(forbiddenStatusCode, 'Доступ запрещен');
+      }
+      return card.remove();
+    })
     .then(() => {
       res.status(okStatusCode).send({ message: 'Карточка успешно удалена' });
     })
@@ -45,9 +52,6 @@ function deleteCard(req, res, next) {
       switch (e.name) {
         case 'CastError':
           next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id карточки'));
-          break;
-        case 'DocumentNotFoundError':
-          next(new ApiError(notFoundStatusCode, 'Ошибка. Карточка не найдена'));
           break;
         default:
           next(e);

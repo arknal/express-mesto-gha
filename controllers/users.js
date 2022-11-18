@@ -10,7 +10,7 @@ const {
   conflictStatusCode,
 } = require('../utils/consts');
 
-const { SALT_LENGTH = 10, JWT_SECRET = 'e5941b231be3be054dcec54b7cf2f9f7' } = process.env;
+const { JWT_SECRET = 'e5941b231be3be054dcec54b7cf2f9f7' } = process.env;
 
 function login(req, res, next) {
   const { email, password } = req.body;
@@ -30,7 +30,7 @@ function createUser(req, res, next) {
     email,
     password,
   } = req.body;
-  bcrypt.hash(password, +SALT_LENGTH)
+  bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name,
       about,
@@ -38,7 +38,10 @@ function createUser(req, res, next) {
       email,
       password: hash,
     }))
-    .then((user) => res.status(okStatusCode).send({ user }))
+    .then((user) => {
+      const { password: pw, ...info } = user._doc;
+      res.status(okStatusCode).send({ info });
+    })
     .catch((e) => {
       switch (e.name) {
         case 'ValidationError':
@@ -61,7 +64,7 @@ function getAllUsers(req, res, next) {
 }
 
 function getUserById(req, res, next) {
-  User.findOne({ _id: req.params.userId })
+  User.findById(req.params.userId)
     .orFail(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'))
     .then((user) => {
       res.status(okStatusCode).send({ user });
@@ -78,7 +81,7 @@ function getUserById(req, res, next) {
     });
 }
 function getCurrentUser(req, res, next) {
-  User.findOne({ _id: req.user._id })
+  User.findById(req.user._id)
     .then((user) => {
       res.status(okStatusCode).send({ user });
     })

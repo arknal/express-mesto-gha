@@ -16,13 +16,13 @@ router.use('/users', authMiddleware);
 
 router.get('/users', getAllUsers);
 
+router.get('/users/me', getCurrentUser);
+
 router.get('/users/:userId', celebrate({
   query: Joi.object().keys({
     userId: Joi.string().alphanum().length(24),
   }),
 }), getUserById);
-
-router.get('/users/me', getCurrentUser);
 
 router.patch('/users/me', celebrate({
   body: Joi.object().keys({

@@ -30,8 +30,11 @@ app.post('/signin', celebrate({
 }), login);
 app.post('/signup', celebrate({
   body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
     email: Joi.string().required().email(),
-    about: Joi.string().required().min(4),
+    password: Joi.string().required().min(4),
+    avatar: Joi.string().uri(),
   }).unknown(true),
 }), createUser);
 app.use('/', userRoutes);
