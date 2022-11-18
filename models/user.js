@@ -1,5 +1,9 @@
+/* eslint-disable func-names */
 const mongoose = require('mongoose');
 const { isEmail, isURL } = require('validator');
+const bcrypt = require('bcrypt');
+const ApiError = require('../error/apiError');
+const { unauthorizedStatusCode } = require('../utils/consts');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -28,7 +32,20 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
+    select: false,
   },
 }, { versionKey: false });
 
+userSchema.statics.findUserByCredentials = function (email, password) {
+  return this.findOne({ email }).select('+password')
+    .orFail(new ApiError(unauthorizedStatusCode, 'Неправильные почта или пароль'))
+    .then((user) => bcrypt.compare(password, user.password)
+      .then((matched) => {
+        if (!matched) {
+          return Promise.reject(new ApiError(unauthorizedStatusCode, 'Неправильные почта или пароль'));
+        }
+
+        return user;
+      }));
+};
 module.exports = mongoose.model('user', userSchema);

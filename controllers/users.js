@@ -1,14 +1,27 @@
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+
 const User = require('../models/user');
 const ApiError = require('../error/apiError');
 const {
   okStatusCode,
   badRequestStatusCode,
   notFoundStatusCode,
+  conflictStatusCode,
 } = require('../utils/consts');
 
-const { SALT_LENGTH = 10 } = process.env;
+const { SALT_LENGTH = 10, JWT_SECRET } = process.env;
 
+function login(req, res, next) {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET);
+
+      res.status(okStatusCode).send({ token });
+    })
+    .catch(next);
+}
 function createUser(req, res, next) {
   const {
     name,
@@ -31,6 +44,9 @@ function createUser(req, res, next) {
         case 'ValidationError':
           next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректные данные'));
           break;
+        case e.code === 11000 && 'MongoServerError':
+          next(new ApiError(conflictStatusCode, 'Пользователь с таким email уже зарегистрирован'));
+          break;
         default:
           next(e);
           break;
@@ -46,7 +62,7 @@ function getAllUsers(req, res, next) {
 
 function getUserById(req, res, next) {
   User.findOne({ _id: req.params.userId })
-    .orFail()
+    .orFail(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'))
     .then((user) => {
       res.status(okStatusCode).send({ user });
     })
@@ -54,9 +70,6 @@ function getUserById(req, res, next) {
       switch (e.name) {
         case 'CastError':
           next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id пользователя'));
-          break;
-        case 'DocumentNotFoundError':
-          next(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'));
           break;
         default:
           next(e);
@@ -64,13 +77,19 @@ function getUserById(req, res, next) {
       }
     });
 }
-
+function getCurrentUser(req, res, next) {
+  User.findOne({ _id: req.user._id })
+    .then((user) => {
+      res.status(okStatusCode).send({ user });
+    })
+    .catch(next);
+}
 function updateUserProfile(req, res, next) {
   const id = req.user._id;
   const { name, about } = req.body;
 
   User.findByIdAndUpdate({ _id: id }, { name, about }, { new: true, runValidators: true })
-    .orFail()
+    .orFail(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'))
     .then((user) => {
       res.status(okStatusCode).send({ user });
     })
@@ -78,9 +97,6 @@ function updateUserProfile(req, res, next) {
       switch (e.name) {
         case 'CastError':
           next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id пользователя'));
-          break;
-        case 'DocumentNotFoundError':
-          next(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'));
           break;
         case 'ValidationError':
           next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректные данные'));
@@ -97,15 +113,12 @@ function updateUserAvatar(req, res, next) {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate({ _id: id }, { avatar }, { new: true, runValidators: true })
-    .orFail()
+    .orFail(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'))
     .then((user) => res.status(okStatusCode).send({ user }))
     .catch((e) => {
       switch (e.name) {
         case 'CastError':
           next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректный id пользователя'));
-          break;
-        case 'DocumentNotFoundError':
-          next(new ApiError(notFoundStatusCode, 'Ошибка. Пользователь не найден'));
           break;
         case 'ValidationError':
           next(new ApiError(badRequestStatusCode, 'Ошибка. Некорректные данные'));
@@ -118,9 +131,11 @@ function updateUserAvatar(req, res, next) {
 }
 
 module.exports = {
+  login,
   createUser,
   getAllUsers,
   getUserById,
+  getCurrentUser,
   updateUserAvatar,
   updateUserProfile,
 };

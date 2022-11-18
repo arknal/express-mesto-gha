@@ -1,4 +1,7 @@
 const router = require('express').Router();
+
+const authMiddleware = require('../middlewares/auth');
+
 const {
   createCard,
   getAllCards,
@@ -6,6 +9,8 @@ const {
   addLike,
   removeLike,
 } = require('../controllers/cards');
+
+router.use('/cards', authMiddleware);
 
 router.get('/cards', getAllCards);
 
