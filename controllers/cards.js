@@ -29,7 +29,7 @@ function deleteCard(req, res, next) {
   Card.findById(req.params.cardId)
     .orFail(new NotFoundError('Ошибка. Карточка не найдена'))
     .then((card) => {
-      if (!(card._doc.owner.toString() === req.user._id)) {
+      if (!(card.owner.toString() === req.user._id)) {
         throw new ForbiddenError('Доступ запрещен');
       }
       return card.remove();

@@ -36,11 +36,11 @@ function createUser(req, res, next) {
       password: hash,
     }))
     .then((user) => {
-      const { password: pw, ...info } = user._doc;
+      const { password: pw, ...info } = user.toObject();
       res.status(okStatusCode).send({ info });
     })
     .catch((e) => {
-      if (e.code === 11000 && 'MongoServerError') {
+      if (e.code === 11000) {
         next(new ConflictError('Пользователь с таким email уже зарегистрирован'));
       }
       next(e);
