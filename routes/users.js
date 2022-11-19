@@ -22,7 +22,12 @@ router.get('/users/me', getCurrentUser);
 
 router.get('/users/:userId', celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().alphanum().length(24),
+    userId: Joi
+      .string()
+      .alphanum()
+      .required()
+      .hex()
+      .length(24),
   }),
 }), getUserById);
 
