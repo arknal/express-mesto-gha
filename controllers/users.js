@@ -5,6 +5,8 @@ const User = require('../models/user');
 
 const ConflictError = require('../error/ConflictError');
 const NotFoundError = require('../error/NotFoundError');
+const BadRequestError = require('../error/BadRequestError');
+
 const { okStatusCode } = require('../utils/consts');
 
 const { JWT_SECRET = 'e5941b231be3be054dcec54b7cf2f9f7', SALT = 10 } = process.env;
@@ -40,10 +42,17 @@ function createUser(req, res, next) {
       res.status(okStatusCode).send({ info });
     })
     .catch((e) => {
-      if (e.code === 11000) {
-        next(new ConflictError('Пользователь с таким email уже зарегистрирован'));
+      switch (e.name) {
+        case 'ValidationError':
+          next(new BadRequestError('Ошибка. Некорректные данные'));
+          break;
+        case e.code === 11000 && 'MongoServerError':
+          next(new ConflictError('Пользователь с таким email уже зарегистрирован'));
+          break;
+        default:
+          next(e);
+          break;
       }
-      next(e);
     });
 }
 
@@ -59,7 +68,13 @@ function getUserById(req, res, next) {
     .then((user) => {
       res.status(okStatusCode).send({ user });
     })
-    .catch(next);
+    .catch((e) => {
+      if (e.name === 'CastError') {
+        next(new BadRequestError('Ошибка. Некорректные данные'));
+      } else {
+        next(e);
+      }
+    });
 }
 function getCurrentUser(req, res, next) {
   User.findById(req.user._id)
@@ -77,7 +92,13 @@ function updateUserProfile(req, res, next) {
     .then((user) => {
       res.status(okStatusCode).send({ user });
     })
-    .catch(next);
+    .catch((e) => {
+      if (e.name === 'ValidationError') {
+        next(new BadRequestError('Ошибка. Некорректные данные'));
+      } else {
+        next(e);
+      }
+    });
 }
 
 function updateUserAvatar(req, res, next) {
@@ -87,7 +108,13 @@ function updateUserAvatar(req, res, next) {
   User.findByIdAndUpdate({ _id: id }, { avatar }, { new: true, runValidators: true })
     .orFail(new NotFoundError('Ошибка. Пользователь не найден'))
     .then((user) => res.status(okStatusCode).send({ user }))
-    .catch(next);
+    .catch((e) => {
+      if (e.name === 'ValidationError') {
+        next(new BadRequestError('Ошибка. Некорректные данные'));
+      } else {
+        next(e);
+      }
+    });
 }
 
 module.exports = {
