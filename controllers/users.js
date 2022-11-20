@@ -70,7 +70,7 @@ function getUserById(req, res, next) {
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        next(new BadRequestError('Ошибка. Некорректные данные'));
+        next(new BadRequestError('Ошибка. Некорректный id пользователя'));
       } else {
         next(e);
       }
@@ -94,7 +94,7 @@ function updateUserProfile(req, res, next) {
     })
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        next(new BadRequestError('Ошибка. Некорректные данные'));
+        next(new BadRequestError('Ошибка. Некорректный id пользователя'));
       } else {
         next(e);
       }
@@ -110,7 +110,7 @@ function updateUserAvatar(req, res, next) {
     .then((user) => res.status(okStatusCode).send({ user }))
     .catch((e) => {
       if (e.name === 'ValidationError') {
-        next(new BadRequestError('Ошибка. Некорректные данные'));
+        next(new BadRequestError('Ошибка. Некорректный id пользователя'));
       } else {
         next(e);
       }

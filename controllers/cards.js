@@ -46,7 +46,7 @@ function deleteCard(req, res, next) {
     })
     .catch((e) => {
       if (e.name === 'CastError') {
-        next(new BadRequestError('Ошибка. Некорректные данные'));
+        next(new BadRequestError('Ошибка. Некорректный id карточки'));
       } else {
         next(e);
       }
@@ -64,7 +64,7 @@ function addLike(req, res, next) {
     .then((card) => res.status(okStatusCode).send({ card }))
     .catch((e) => {
       if (e.name === 'CastError') {
-        next(new BadRequestError('Ошибка. Некорректные данные'));
+        next(new BadRequestError('Ошибка. Некорректный id карточки'));
       } else {
         next(e);
       }
@@ -82,7 +82,7 @@ function removeLike(req, res, next) {
     .then((card) => res.status(okStatusCode).send({ card }))
     .catch((e) => {
       if (e.name === 'CastError') {
-        next(new BadRequestError('Ошибка. Некорректные данные'));
+        next(new BadRequestError('Ошибка. Некорректный id карточки'));
       } else {
         next(e);
       }
