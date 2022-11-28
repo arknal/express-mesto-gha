@@ -12,15 +12,15 @@ function authMiddleware(req, res, next) {
 
   const token = authorization.replace('Bearer ', '');
 
-  const payload = jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      throw new UnauthorizedError('Необходима авторизация');
-    }
-    return decoded;
-  });
+  let payload;
+  try {
+    payload = jwt.verify(token, JWT_SECRET);
+  } catch (e) {
+    next(new UnauthorizedError('Необходима авторизация'));
+  }
   req.user = payload;
 
-  return next();
+  next();
 }
 
 module.exports = authMiddleware;

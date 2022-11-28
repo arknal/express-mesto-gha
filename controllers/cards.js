@@ -4,6 +4,7 @@ const { okStatusCode } = require('../utils/consts');
 
 const NotFoundError = require('../error/NotFoundError');
 const ForbiddenError = require('../error/ForbiddenError');
+const BadRequestError = require('../error/BadRequestError');
 
 function createCard(req, res, next) {
   const { name, link } = req.body;
@@ -15,21 +16,27 @@ function createCard(req, res, next) {
     owner: id,
   })
     .then((card) => res.status(okStatusCode).send({ card }))
-    .catch(next);
+    .catch((e) => {
+      if (e.name === 'ValidationError') {
+        next(new BadRequestError('Ошибка. Некорректные данные'));
+      } else {
+        next(e);
+      }
+    });
 }
 
 function getAllCards(req, res, next) {
   Card.find({})
     .populate('likes')
     .then((cards) => res.status(okStatusCode).send({ cards }))
-    .catch((e) => next(e));
+    .catch(next);
 }
 
 function deleteCard(req, res, next) {
   Card.findById(req.params.cardId)
     .orFail(new NotFoundError('Ошибка. Карточка не найдена'))
     .then((card) => {
-      if (!(card._doc.owner.toString() === req.user._id)) {
+      if (!(card.owner.toString() === req.user._id)) {
         throw new ForbiddenError('Доступ запрещен');
       }
       return card.remove();
@@ -37,7 +44,13 @@ function deleteCard(req, res, next) {
     .then(() => {
       res.status(okStatusCode).send({ message: 'Карточка успешно удалена' });
     })
-    .catch(next);
+    .catch((e) => {
+      if (e.name === 'CastError') {
+        next(new BadRequestError('Ошибка. Некорректные данные'));
+      } else {
+        next(e);
+      }
+    });
 }
 
 function addLike(req, res, next) {
@@ -49,7 +62,13 @@ function addLike(req, res, next) {
     .orFail(new NotFoundError('Ошибка. Карточка не найдена'))
     .populate('likes')
     .then((card) => res.status(okStatusCode).send({ card }))
-    .catch(next);
+    .catch((e) => {
+      if (e.name === 'CastError') {
+        next(new BadRequestError('Ошибка. Некорректные данные'));
+      } else {
+        next(e);
+      }
+    });
 }
 
 function removeLike(req, res, next) {
@@ -61,7 +80,13 @@ function removeLike(req, res, next) {
     .orFail(new NotFoundError('Ошибка. Карточка не найдена'))
     .populate('likes')
     .then((card) => res.status(okStatusCode).send({ card }))
-    .catch(next);
+    .catch((e) => {
+      if (e.name === 'CastError') {
+        next(new BadRequestError('Ошибка. Некорректные данные'));
+      } else {
+        next(e);
+      }
+    });
 }
 module.exports = {
   createCard,
