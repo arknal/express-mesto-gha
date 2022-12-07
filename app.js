@@ -10,12 +10,12 @@ const NotFoundError = require('./error/NotFoundError');
 
 const app = express();
 
-const { PORT = 3000 } = process.env;
+const { PORT = 3000, CORS_ORIGIN = 'http://localhost:3000' } = process.env;
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use(express.json());
-app.use(cors({ origin: process.env.CORS_ORIGIN }));
+app.use(cors({ origin: CORS_ORIGIN }));
 app.use(requestLogger);
 app.use('/', router);
 app.use(errorLogger);
