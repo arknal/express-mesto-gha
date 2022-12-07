@@ -15,7 +15,7 @@ const { PORT = 3000, CORS_ORIGIN = 'http://localhost:3000' } = process.env;
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
 app.use(express.json());
-app.use(cors({ origin: CORS_ORIGIN }));
+app.use(cors({ 'Access-Control-Allow-Origin': CORS_ORIGIN }));
 app.use(requestLogger);
 app.use('/', router);
 app.use(errorLogger);
