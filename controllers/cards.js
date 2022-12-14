@@ -88,10 +88,47 @@ function removeLike(req, res, next) {
       }
     });
 }
+function addComment(req, res, next) {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { comments: { user: req.user._id, message: req.body.message } } },
+    { new: true },
+  )
+    .orFail(new NotFoundError('Ошибка. Карточка не найдена'))
+    .populate('likes')
+    .then((card) => res.status(okStatusCode).send({ card }))
+    .catch((e) => {
+      if (e.name === 'CastError') {
+        next(new BadRequestError('Ошибка. Некорректный id карточки'));
+      } else {
+        next(e);
+      }
+    });
+}
+
+function deleteComment(req, res, next) {
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { comments: { _id: req.params.commentId } } },
+    { new: true },
+  )
+    .orFail(new NotFoundError('Ошибка. Карточка не найдена'))
+    .populate('likes')
+    .then((card) => res.status(okStatusCode).send({ card }))
+    .catch((e) => {
+      if (e.name === 'CastError') {
+        next(new BadRequestError('Ошибка. Некорректный id карточки'));
+      } else {
+        next(e);
+      }
+    });
+}
 module.exports = {
   createCard,
   getAllCards,
   deleteCard,
   addLike,
   removeLike,
+  addComment,
+  deleteComment,
 };

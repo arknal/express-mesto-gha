@@ -12,6 +12,8 @@ const {
   deleteCard,
   addLike,
   removeLike,
+  addComment,
+  deleteComment,
 } = require('../controllers/cards');
 
 router.use('/cards', authMiddleware);
@@ -57,5 +59,33 @@ router.delete('/cards/:cardId/likes', celebrate({
       .hex(),
   }),
 }), removeLike);
+
+router.post('/cards/:cardId/comment', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi
+      .string()
+      .alphanum()
+      .length(24)
+      .required()
+      .hex(),
+  }),
+}), addComment);
+
+router.delete('/cards/:cardId/comment/:commentId', celebrate({
+  params: Joi.object().keys({
+    cardId: Joi
+      .string()
+      .alphanum()
+      .length(24)
+      .required()
+      .hex(),
+    commentId: Joi
+      .string()
+      .alphanum()
+      .length(24)
+      .required()
+      .hex(),
+  }),
+}), deleteComment);
 
 module.exports = router;
