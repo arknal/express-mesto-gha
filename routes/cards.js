@@ -14,11 +14,18 @@ const {
   removeLike,
   addComment,
   deleteComment,
+  getUserCards,
+  getSubscribeCards,
 } = require('../controllers/cards');
 
 router.use('/cards', authMiddleware);
+router.use('/feed', authMiddleware);
 
 router.get('/cards', getAllCards);
+
+router.get('/feed', getSubscribeCards);
+
+router.get('/cards/my', getUserCards);
 
 router.post('/cards', celebrate({
   body: Joi.object().keys({

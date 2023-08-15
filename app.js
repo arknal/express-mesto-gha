@@ -21,8 +21,8 @@ app.use('/', router);
 app.use(errorLogger);
 app.use(errors());
 app.use(() => {
-  throw new NotFoundError('404 Not Found');
+  throw new NotFoundError('Not Found');
 });
 app.use(errorHandler);
 
-app.listen(PORT, () => console.log('server started at port', PORT));
+app.listen(PORT, () => console.log('server is running on port', PORT));

@@ -5,6 +5,7 @@ const { okStatusCode } = require('../utils/consts');
 const NotFoundError = require('../error/NotFoundError');
 const ForbiddenError = require('../error/ForbiddenError');
 const BadRequestError = require('../error/BadRequestError');
+const User = require('../models/user');
 
 function createCard(req, res, next) {
   const { name, link } = req.body;
@@ -30,6 +31,28 @@ function getAllCards(req, res, next) {
     .populate('likes')
     .then((cards) => res.status(okStatusCode).send({ cards }))
     .catch(next);
+}
+
+function getUserCards(req, res, next) {
+  Card.find({ owner: req.user._id })
+    .populate('likes')
+    .then((cards) => res.status(okStatusCode).send({ cards }))
+    .catch(next);
+}
+
+function getSubscribeCards(req, res, next) {
+  User.findById(req.user._id)
+    .then((user) => user.subscribe)
+    .then(async (subs) => {
+      const cardArr = [];
+      // eslint-disable-next-line
+      for (let sub of subs) {
+        // eslint-disable-next-line
+        const query = await Card.find({ owner: sub });
+        cardArr.push(...query);
+      }
+      res.status(okStatusCode).send({ cards: cardArr });
+    }).catch(next);
 }
 
 function deleteCard(req, res, next) {
@@ -131,4 +154,6 @@ module.exports = {
   removeLike,
   addComment,
   deleteComment,
+  getSubscribeCards,
+  getUserCards,
 };

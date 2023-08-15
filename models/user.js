@@ -28,6 +28,18 @@ const userSchema = new mongoose.Schema({
     required: true,
     validate: { validator: (v) => isEmail(v) },
   },
+  subscribe: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+    },
+  ],
+  followers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'user',
+    },
+  ],
   password: {
     type: String,
     required: true,

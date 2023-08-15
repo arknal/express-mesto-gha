@@ -66,7 +66,8 @@ function getUserById(req, res, next) {
   User.findById(req.params.userId)
     .orFail(new NotFoundError('Ошибка. Пользователь не найден'))
     .then((user) => {
-      res.status(okStatusCode).send({ user });
+      const { email, ...currentUser } = user.toObject();
+      res.status(okStatusCode).send({ currentUser });
     })
     .catch((e) => {
       if (e.name === 'CastError') {
@@ -117,12 +118,65 @@ function updateUserAvatar(req, res, next) {
     });
 }
 
+function addSubscribe(req, res, next) {
+  User.findByIdAndUpdate(
+    req.params.userId,
+    { $addToSet: { followers: req.user._id } },
+  )
+    .then(() => {
+      User.findByIdAndUpdate(
+        req.user._id,
+        { $addToSet: { subscribe: req.params.userId } },
+        { new: true },
+      )
+        .then((user) => res.status(okStatusCode).send({ user }))
+        .catch((e) => {
+          if (e.name === 'CastError') {
+            next(new BadRequestError('Ошибка. Некорректный id пользователя'));
+          } else {
+            next(e);
+          }
+        });
+    })
+    .catch((e) => {
+      if (e.name === 'CastError') {
+        next(new BadRequestError('Ошибка. Некорректный id пользователя'));
+      } else {
+        next(e);
+      }
+    });
+}
+function removeSubscribe(req, res, next) {
+  User.findByIdAndUpdate(
+    req.params.userId,
+    { $pull: { followers: req.user._id } },
+    { new: true },
+  )
+    .then(() => {
+      User.findByIdAndUpdate(
+        req.user._id,
+        { $pull: { subscribe: req.params.userId } },
+        { new: true },
+      )
+        .then((user) => res.status(okStatusCode).send({ user }));
+    })
+    .catch((e) => {
+      if (e.name === 'CastError') {
+        next(new BadRequestError('Ошибка. Некорректный id пользователя'));
+      } else {
+        next(e);
+      }
+    });
+}
+
 module.exports = {
   login,
   createUser,
-  getAllUsers,
   getUserById,
   getCurrentUser,
   updateUserAvatar,
   updateUserProfile,
+  addSubscribe,
+  removeSubscribe,
+  getAllUsers,
 };

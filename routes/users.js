@@ -7,11 +7,13 @@ const authMiddleware = require('../middlewares/auth');
 const { urlRegExp } = require('../utils/consts');
 
 const {
-  getAllUsers,
   getUserById,
   getCurrentUser,
   updateUserAvatar,
   updateUserProfile,
+  addSubscribe,
+  removeSubscribe,
+  getAllUsers,
 } = require('../controllers/users');
 
 router.use('/users', authMiddleware);
@@ -19,6 +21,28 @@ router.use('/users', authMiddleware);
 router.get('/users', getAllUsers);
 
 router.get('/users/me', getCurrentUser);
+
+router.patch('/users/:userId/follow', celebrate({
+  params: Joi.object().keys({
+    userId: Joi
+      .string()
+      .alphanum()
+      .required()
+      .hex()
+      .length(24),
+  }),
+}), addSubscribe);
+
+router.delete('/users/:userId/follow', celebrate({
+  params: Joi.object().keys({
+    userId: Joi
+      .string()
+      .alphanum()
+      .required()
+      .hex()
+      .length(24),
+  }),
+}), removeSubscribe);
 
 router.get('/users/:userId', celebrate({
   params: Joi.object().keys({
